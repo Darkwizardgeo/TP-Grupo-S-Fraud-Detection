@@ -4,28 +4,7 @@ import pandas as pd
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import roc_auc_score, average_precision_score, f1_score
 
-def evaluate_pipeline(pipeline, X, y, cv_splits=5, random_state=42):
-    """
-    Evalúa un pipeline de clasificación con Stratified K-Fold.
-
-    Parámetros
-    ----------
-    pipeline : sklearn Pipeline
-        Pipeline ya configurado (ej. logistic_pipeline, svm_pipeline, xgboost_pipeline)
-    X : pd.DataFrame
-        Features
-    y : pd.Series o np.array
-        Target binario (0/1, ej. isFraud)
-    cv_splits : int
-        Número de folds para Stratified K-Fold
-    random_state : int
-        Semilla para reproducibilidad
-
-    Retorna
-    -------
-    results : dict
-        Métricas promedio y desviación estándar
-    """
+def evaluate_pipeline(pipeline, X, y, cv_splits=3, random_state=42):
     skf = StratifiedKFold(n_splits=cv_splits, shuffle=True, random_state=random_state)
 
     aucs, pr_aucs, f1s = [], [], []
@@ -56,18 +35,6 @@ def evaluate_pipeline(pipeline, X, y, cv_splits=5, random_state=42):
 
 
 def evaluate_multiple(pipelines, X, y, cv_splits=5):
-    """
-    Evalúa múltiples pipelines y devuelve resultados en un DataFrame.
-
-    pipelines : dict
-        Diccionario con nombre -> pipeline
-    X : DataFrame
-    y : Series
-
-    Retorna
-    -------
-    pd.DataFrame
-    """
     all_results = {}
     for name, pipe in pipelines.items():
         res = evaluate_pipeline(pipe, X, y, cv_splits=cv_splits)
