@@ -1,14 +1,8 @@
-import pandas as pd
 from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.feature_selection import VarianceThreshold, SelectFromModel
 from sklearn.svm import LinearSVC
 from sklearn.calibration import CalibratedClassifierCV
@@ -60,7 +54,7 @@ def reduce_dataset_complexity_pipeline(df):
             colsample_bytree=0.8,
             tree_method="hist",
             n_jobs=-1,
-            eval_metric="auc"
+            eval_metric=["auc", "aucpr"]
         ),
         threshold="1.5*mean"
     )
@@ -88,16 +82,12 @@ def logistic_pipeline(df, target_col="isFraud"):
 # === Pipeline para SVM ===
 def svm_pipeline(df, target_col="isFraud"):
     pipeline_reduced = reduce_dataset_complexity_pipeline(df.drop(columns=[target_col]))
-    svm_base = LinearSVC(class_weight="balanced", max_iter=5000)
+    svm_base = LinearSVC(class_weight="balanced", max_iter=5000, C=10)
 
     return Pipeline([
         ("reduce", pipeline_reduced),
         ("model", CalibratedClassifierCV(svm_base, method="sigmoid", cv=3))  # para tener predict_proba
     ], memory=memory)
-    # return Pipeline([
-    #     ("preprocess", preprocessor),
-    #     ("model", SVC(kernel="rbf", class_weight="balanced", probability=True))
-    # ])
 
 # === Pipeline para XGBoost ===
 def xgboost_pipeline_reduced(df, target_col="isFraud"):
@@ -112,7 +102,7 @@ def xgboost_pipeline_reduced(df, target_col="isFraud"):
             subsample=0.8,
             colsample_bytree=0.8,
             scale_pos_weight=1,  # Ajustar según balance de clases
-            eval_metric="auc"
+            eval_metric=["auc", "aucpr"]
         ))
     ], memory=memory)
 
@@ -128,6 +118,6 @@ def xgboost_pipeline_raw():
             enable_categorical=True,
             tree_method="hist",      # optimizado para grandes datasets
             n_jobs=-1,
-            eval_metric="auc"
+            eval_metric=["auc", "aucpr"]
         ))
     ], memory=memory)
