@@ -14,6 +14,35 @@ def fraud_licit_ratio(df):
     print("\nDistribución de isFraud:")
     for clase in conteo.index:
         print(f"Clase {clase}: {conteo[clase]} registros ({porcentaje[clase]:.2f}%)")
+        
+def monto_total_fraude(df):
+    total_fraude = df.loc[df['isFraud'] == 1, 'TransactionAmt'].sum()
+    print(f"Monto total de transacciones fraudulentas: ${total_fraude:,.2f}")
+    return total_fraude
+
+def analisis_monto_predicciones(df, y_true, y_pred):
+    resultados = pd.DataFrame({
+        "y_true": y_true,
+        "y_pred": y_pred,
+        "TransactionAmt": df["TransactionAmt"].values
+    })
+    
+    TP = resultados[(resultados.y_true == 1) & (resultados.y_pred == 1)]["TransactionAmt"].sum()
+    FP = resultados[(resultados.y_true == 0) & (resultados.y_pred == 1)]["TransactionAmt"].sum()
+    FN = resultados[(resultados.y_true == 1) & (resultados.y_pred == 0)]["TransactionAmt"].sum()
+    total_fraude = resultados[resultados.y_true == 1]["TransactionAmt"].sum()
+    
+    print(f"💰 Monto detectado correctamente (TP): ${TP:,.2f}")
+    print(f"⚠️  Falsos positivos (FP): ${FP:,.2f}")
+    print(f"❌ Fraudes no detectados (FN): ${FN:,.2f}")
+    print(f"🎯 Porcentaje de dinero recuperado: {(TP / total_fraude * 100):.2f}% del total fraudulento\n")
+
+    return {
+        "TP_monto": TP,
+        "FP_monto": FP,
+        "FN_monto": FN,
+        "recuperado_%": (TP / total_fraude * 100)
+    }
 
 def split_by_suffix(df):
     id_cols = [col for col in df.columns if col.startswith('id_')]
